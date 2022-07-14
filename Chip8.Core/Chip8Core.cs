@@ -270,21 +270,25 @@ namespace Chip8.Core
         private void CopyRegisterInstruction(Opcode opcode) //8XY0
         {
             _variableRegisters[opcode.X] = _variableRegisters[opcode.Y];
+            PC += 2;
         }
 
         private void BinaryOrInstruction(Opcode opcode) //8XY1
         {
             _variableRegisters[opcode.X] |= _variableRegisters[opcode.Y];
+            PC += 2;
         }
 
         private void BinaryAndInstruction(Opcode opcode) //8XY2
         {
             _variableRegisters[opcode.X] &= _variableRegisters[opcode.Y];
+            PC += 2;
         }
 
         private void LogicalXorInstruction(Opcode opcode) //8XY3
         {
             _variableRegisters[opcode.X] ^= _variableRegisters[opcode.Y];
+            PC += 2;
         }
 
         private void AddRegirsterInstruction(Opcode opcode) //8XY4
@@ -295,6 +299,7 @@ namespace Chip8.Core
                 _variableRegisters[0xF] = 0;
 
             _variableRegisters[opcode.X] += _variableRegisters[opcode.Y];
+            PC += 2;
         }
 
         private void SubtractYFromXInstruction(Opcode opcode) //8XY5
