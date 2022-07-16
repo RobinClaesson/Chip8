@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "Chip8.Console": {
-      "commandName": "Project",
-      "commandLineArgs": "\"C:\\Users\\robin\\Downloads\\IBM Logo.ch8\""
-    }
-  }
-}
