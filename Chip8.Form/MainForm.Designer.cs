@@ -84,6 +84,7 @@
             // 
             // updateTimer
             // 
+            this.updateTimer.Interval = 2;
             this.updateTimer.Tick += new System.EventHandler(this.updateTimer_Tick);
             // 
             // MainForm

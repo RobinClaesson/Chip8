@@ -99,6 +99,7 @@ namespace Chip8.Forms
         private void openFileDialog1_FileOk(object sender, CancelEventArgs e)
         {
             _chip8Core.LoadRom(openRomDialog.FileName);
+            chip8Panel.Refresh();
             StartUpdate();
         }
 

@@ -72,6 +72,7 @@ namespace Chip8.Core
             }
 
             PC = RomStartLocation;
+            ClearScreenInstruction();
         }
 
         public void LoadRom(string filePath)
@@ -162,6 +163,7 @@ namespace Chip8.Core
         private void ClearScreenInstruction() //00E0
         {
             Display = new bool[DisplayHeight, DisplayWidth];
+            DisplayChanged?.Invoke(this, EventArgs.Empty);
             PC += 2;
         }
 
