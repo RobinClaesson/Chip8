@@ -13,7 +13,7 @@ namespace Chip8.Forms
 {
     public partial class MainForm : Form
     {
-        private Chip8Core _chip8Core = new Chip8Core();
+        private Chip8Core _chip8Core = new();
 
         public MainForm()
         {

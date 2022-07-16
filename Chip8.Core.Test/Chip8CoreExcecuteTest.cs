@@ -162,7 +162,7 @@ namespace Chip8.Core.Test
         }
 
         [TestMethod]
-        public void AddImmediateInstruction_AdditionOverFlow_RegisterIsAdditionResultMinus256()
+        public void AddImmediateInstruction_AdditionOverFlow_RegisterIsAdditionOverflowResult()
         {
             _target.Execute(0x6913);
             _target.Execute(0x79FF);
@@ -221,7 +221,7 @@ namespace Chip8.Core.Test
         }
 
         [TestMethod]
-        public void AddRegirsterInstruction_NoOverflow_RegisterYAddedToX()
+        public void AddRegirsterInstruction_NoOverflow_RegisterYAddedToXAndRegisterFSetTo0()
         {
             _target.Execute(0x6D26);
             _target.Execute(0x6743);
@@ -234,7 +234,7 @@ namespace Chip8.Core.Test
         }
 
         [TestMethod]
-        public void AddRegirsterInstruction_NoOverflow_RegisterIsAdditionResultMinus256AndRegisterFSetTo1()
+        public void AddRegirsterInstruction_Overflow_RegisterXIsAdditionOverFlowResultAndRegisterFSetTo1()
         {
             _target.Execute(0x6DFF);
             _target.Execute(0x6705);
@@ -244,6 +244,67 @@ namespace Chip8.Core.Test
             Assert.AreEqual(0x4, _target.VariableRegisters[0xD]);
             Assert.AreEqual(1, _target.VariableRegisters[0xF]);
             Assert.AreEqual(_programCounterAtStart + InstructionPcIncrease * 3, _target.PC);
+        }
+
+        [TestMethod]
+        public void SubtractYFromXInstruction_XLargerThanY_RegisterYSubractedFromXAndRegisterFSetTo1()
+        {
+            _target.Execute(0x6956);
+            _target.Execute(0x6A26);
+            _target.Execute(0x89A5);
+
+            Assert.AreEqual(0x30, _target.VariableRegisters[9]);
+            Assert.AreEqual(0x26, _target.VariableRegisters[0xA]);
+            Assert.AreEqual(1, _target.VariableRegisters[0XF]);
+            Assert.AreEqual(_programCounterAtStart + InstructionPcIncrease * 3, _target.PC);
+        }
+
+        [TestMethod]
+        public void SubtractYFromXInstruction_YLargerThanX_RegiseterXSetToSubractionUnderflowAndRegisterFSetTo0()
+        {
+            _target.Execute(0x6956);
+            _target.Execute(0x6A66);
+            _target.Execute(0x89A5);
+
+            Assert.AreEqual(0xF0, _target.VariableRegisters[9]);
+            Assert.AreEqual(0x66, _target.VariableRegisters[0xA]);
+            Assert.AreEqual(0, _target.VariableRegisters[0XF]);
+            Assert.AreEqual(_programCounterAtStart + InstructionPcIncrease * 3, _target.PC);
+        }
+
+        [TestMethod]
+        public void SubtractXFromYInstruction_XLargerThanY_RegiseterXSetToSubractionUnderflowAndRegisterFSetTo0()
+        {
+            _target.Execute(0x6956);
+            _target.Execute(0x6A26);
+            _target.Execute(0x89A7);
+
+            Assert.AreEqual(0xD0, _target.VariableRegisters[9]);
+            Assert.AreEqual(0x26, _target.VariableRegisters[0xA]);
+            Assert.AreEqual(0, _target.VariableRegisters[0XF]);
+            Assert.AreEqual(_programCounterAtStart + InstructionPcIncrease * 3, _target.PC);
+        }
+
+        [TestMethod]
+        public void SubtractXFromYInstruction_YLargerThanX_RegiseterXSetToSubractionAndRegisterFSetTo1()
+        {
+            _target.Execute(0x6956);
+            _target.Execute(0x6A66);
+            _target.Execute(0x89A7);
+
+            Assert.AreEqual(0x10, _target.VariableRegisters[9]);
+            Assert.AreEqual(0x66, _target.VariableRegisters[0xA]);
+            Assert.AreEqual(1, _target.VariableRegisters[0XF]);
+            Assert.AreEqual(_programCounterAtStart + InstructionPcIncrease * 3, _target.PC);
+        }
+
+        [TestMethod]
+        public void SetIndexRegiesterInstruction_IndexRegisterSetToOpcodeNNN()
+        {
+            _target.Execute(0xA314);
+
+            Assert.AreEqual(0x314, _target.IndexRegister);
+            Assert.AreEqual(_programCounterAtStart + InstructionPcIncrease, _target.PC);
         }
     }
 }

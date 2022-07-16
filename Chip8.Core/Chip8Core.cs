@@ -28,10 +28,10 @@ namespace Chip8.Core
 
         public ushort IndexRegister { get; private set; } = 0;
 
-        private byte[] _variableRegisters = new byte[16];
+        private readonly byte[] _variableRegisters = new byte[16];
         public ImmutableArray<byte> VariableRegisters => ImmutableArray.Create(_variableRegisters);
 
-        private Stack<ushort> _stack = new Stack<ushort>();
+        private readonly Stack<ushort> _stack = new();
         public ImmutableStack<ushort> Stack => ImmutableStack.Create(_stack.ToArray());
 
         public byte DelayTimer { get; private set; } = 0;
@@ -152,7 +152,7 @@ namespace Chip8.Core
         {
             PC = _stack.Pop();
             PC += 2;
-        } 
+        }
 
 
         private void JumpInstructíon(Opcode opcode) //1NNN
@@ -304,18 +304,32 @@ namespace Chip8.Core
 
         private void SubtractYFromXInstruction(Opcode opcode) //8XY5
         {
+            if (_variableRegisters[opcode.X] > _variableRegisters[opcode.Y])
+                _variableRegisters[0xF] = 1;
+            else
+                _variableRegisters[0xF] = 0;
+
+
             _variableRegisters[opcode.X] -= _variableRegisters[opcode.Y];
+            PC += 2;
         }
 
         private void SubtractXFromYInstruction(Opcode opcode) //8XY7
         {
+            if (_variableRegisters[opcode.X] < _variableRegisters[opcode.Y])
+                _variableRegisters[0xF] = 1;
+            else
+                _variableRegisters[0xF] = 0;
+
             _variableRegisters[opcode.X] = (byte)(_variableRegisters[opcode.Y] - VariableRegisters[opcode.X]);
+            PC += 2;
         }
 
 
         private void SetIndexRegiesterInstruction(Opcode opcode) //ANNN
         {
             IndexRegister = opcode.NNN;
+            PC += 2;
         }
 
         private void PrintToDisplayInstruction(Opcode opcode)
