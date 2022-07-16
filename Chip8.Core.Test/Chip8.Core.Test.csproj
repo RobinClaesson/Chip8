@@ -19,4 +19,10 @@
     <ProjectReference Include="..\Chip8.Core\Chip8.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Roms\IBMLogo.ch8">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

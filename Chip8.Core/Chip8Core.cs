@@ -6,25 +6,11 @@ namespace Chip8.Core
 
     public class Chip8Core
     {
-        public byte[] Font { get; private init; } = new byte[] { 0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
-                                            0x20, 0x60, 0x20, 0x20, 0x70, // 1
-                                            0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
-                                            0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
-                                            0x90, 0x90, 0xF0, 0x10, 0x10, // 4
-                                            0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
-                                            0xF0, 0x80, 0xF0, 0x90, 0xF0, // 6
-                                            0xF0, 0x10, 0x20, 0x40, 0x40, // 7
-                                            0xF0, 0x90, 0xF0, 0x90, 0xF0, // 8
-                                            0xF0, 0x90, 0xF0, 0x10, 0xF0, // 9
-                                            0xF0, 0x90, 0xF0, 0x90, 0x90, // A
-                                            0xE0, 0x90, 0xE0, 0x90, 0xE0, // B
-                                            0xF0, 0x80, 0x80, 0x80, 0xF0, // C
-                                            0xE0, 0x90, 0x90, 0x90, 0xE0, // D
-                                            0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
-                                            0xF0, 0x80, 0xF0, 0x80, 0x80  // F
-                                           };
+        public const int MemorySize = 0x1000;
+        public const int RomStartLocation = 0x200;
 
-        public byte[] Memory { get; private set; } = new byte[4096];
+        private byte[] _memory = new byte[MemorySize];
+        public ImmutableArray<byte> Memory => ImmutableArray.Create(_memory);
 
         public ushort IndexRegister { get; private set; } = 0;
 
@@ -40,7 +26,7 @@ namespace Chip8.Core
         public const int DisplayWidth = 64;
         public const int DisplayHeight = 32;
 
-        public ushort PC { get; private set; } = 0;
+        public ushort PC { get; private set; } = RomStartLocation;
 
         /// <summary>
         /// Pixels to draw to the display are true, order by [Y, X]
@@ -49,8 +35,8 @@ namespace Chip8.Core
 
         public Chip8Core()
         {
-            for (int i = 0; i < Font.Length; i++)
-                Memory[i] = Font[i];
+            for (int i = 0; i < Font.Characters.Length; i++)
+                _memory[i] = Font.Characters[i];
         }
 
         //TODO: Unit Test CountdownTimers() when timers > 0
@@ -71,6 +57,19 @@ namespace Chip8.Core
         /// </summary>
         public bool Beep => SoundTimer > 0;
 
+        public void LoadRom(byte[] romData)
+        {
+            //TODO: Throw custom exception of romdata wont fit
+            for(int i= 0; i < romData.Length; i++)
+            {
+                _memory[RomStartLocation + i] = romData[i];
+            }
+        }
+
+        public void LoadRom(string filePath)
+        {
+            LoadRom(File.ReadAllBytes(filePath));
+        }
 
         //TODO: Unit test Fetch
         public short Fetch()
@@ -83,7 +82,6 @@ namespace Chip8.Core
             Execute(new Opcode(opcode));
         }
 
-        //TODO: Unit test Execute with all opcodes
         public void Execute(Opcode opcode)
         {
             switch (opcode.First)
@@ -332,9 +330,35 @@ namespace Chip8.Core
             PC += 2;
         }
 
-        private void PrintToDisplayInstruction(Opcode opcode)
+        //TODO: Unit test PrintToDisplayInstruction
+        private void PrintToDisplayInstruction(Opcode opcode) //DXYN
         {
+            var x = _variableRegisters[opcode.X] % DisplayWidth;
+            var y = _variableRegisters[opcode.Y] % DisplayHeight;
 
+            _variableRegisters[0xF] = 0;
+
+            for(int i = 0; i < opcode.N && y < DisplayHeight; i++)
+            {
+                var spriteIndex = IndexRegister + i;
+                var spriteData = _memory[spriteIndex];
+
+                var spriteRow = Convert.ToString(spriteData, 2).PadLeft(8, '0');
+
+                var rowIndex = 0;
+                while(rowIndex++ < spriteRow.Length && x + rowIndex < DisplayWidth)
+                {
+                    if(spriteRow[rowIndex] == '1')
+                    {
+                        if (Display[y, x + rowIndex])
+                            _variableRegisters[0xF] = 1;
+
+                        Display[y, x + rowIndex] = !Display[y, x + rowIndex];
+                    }
+                }
+
+                y++;
+            }
         }
     }
 }
