@@ -1,4 +1,5 @@
 ﻿using Chip8.Core;
+using Chip8.Compiler;
 using System.Text;
 using System.Runtime.InteropServices;
 
@@ -12,13 +13,21 @@ if (args.Length == 0)
     return;
 }
 
-chip8Core.LoadRom(args[0]);
-
-while (true)
+string input;
+do
 {
-    Thread.Sleep(2);
-    chip8Core.Update();
-}
+    Console.Clear();
+    Console.WriteLine("--- Chip8 Console ---");
+    Console.WriteLine($"Rom: {args[0]}");
+    Console.WriteLine("Run or Decompile?");
+    input = Console.ReadLine().ToLower();
+} while (input != "decompile" && input != "run");
+
+if (input == "run")
+    Run();
+else
+    Decompile();
+
 
 void PrintDisplay(object sender, EventArgs e)
 {
@@ -43,4 +52,27 @@ void PrintUsage()
         Console.WriteLine("Usage: Chip8Console.exe <path-to-rom>");
     else
         Console.WriteLine("Usage: dotnet run <path-to-rom>");
+}
+
+void Run()
+{
+    chip8Core.LoadRom(args[0]);
+
+    while (true)
+    {
+        Thread.Sleep(2);
+        chip8Core.Update();
+    }
+}
+
+void Decompile()
+{
+    var name = Path.GetFileName(args[0]).Split('.').First();
+    var savePath = name + ".ch8op";
+
+    Chip8Decompiler.DecompileToFile(args[0], savePath);
+
+    Console.WriteLine($"Decompiled rom {name}");
+    Console.WriteLine("Path: ");
+    Console.WriteLine(savePath);
 }
