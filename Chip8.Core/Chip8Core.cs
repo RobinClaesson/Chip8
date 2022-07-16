@@ -9,7 +9,7 @@ namespace Chip8.Core
         public const int MemorySize = 0x1000;
         public const int RomStartLocation = 0x200;
 
-        private readonly byte[] _memory = new byte[MemorySize];
+        private byte[] _memory;
         public ImmutableArray<byte> Memory => ImmutableArray.Create(_memory);
 
         public ushort IndexRegister { get; private set; } = 0;
@@ -41,6 +41,12 @@ namespace Chip8.Core
 
         public Chip8Core()
         {
+            ResetMemory();
+        }
+
+        private void ResetMemory()
+        {
+            _memory = new byte[MemorySize];
             for (int i = 0; i < Font.Characters.Length; i++)
                 _memory[i] = Font.Characters[i];
         }
@@ -65,6 +71,8 @@ namespace Chip8.Core
 
         public void LoadRom(byte[] romData)
         {
+            ResetMemory();
+
             //TODO: Throw custom exception of romdata wont fit
             for (int i = 0; i < romData.Length; i++)
             {

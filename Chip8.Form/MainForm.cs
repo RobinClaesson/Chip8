@@ -15,7 +15,7 @@ namespace Chip8.Forms
             InitializeComponent();
 
             _chip8Core.DisplayChanged += RefreshChip8Panel;
-            _chip8Core.DisplayChanged += PrintDisplayToFile;
+            //_chip8Core.DisplayChanged += PrintDisplayToFile;
         }
 
         public void StartUpdate()
@@ -40,10 +40,7 @@ namespace Chip8.Forms
 
         private void MainForm_Load(object sender, EventArgs e)
         {
-            _chip8Core.Execute(0x71FF);
-            _chip8Core.Execute(0x7215);
 
-            _chip8Core.Execute(0x8124);
         }
 
         private void PrintDisplayToFile(object sender, EventArgs e)
