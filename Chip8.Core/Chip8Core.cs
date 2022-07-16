@@ -9,7 +9,7 @@ namespace Chip8.Core
         public const int MemorySize = 0x1000;
         public const int RomStartLocation = 0x200;
 
-        private byte[] _memory = new byte[MemorySize];
+        private readonly byte[] _memory = new byte[MemorySize];
         public ImmutableArray<byte> Memory => ImmutableArray.Create(_memory);
 
         public ushort IndexRegister { get; private set; } = 0;
@@ -32,6 +32,12 @@ namespace Chip8.Core
         /// Pixels to draw to the display are true, order by [Y, X]
         /// </summary>
         public bool[,] Display { get; private set; } = new bool[DisplayHeight, DisplayWidth];
+
+        /// <summary>
+        /// Raised when display is changed from 0xDXYN instruction
+        /// </summary>
+        public event EventHandler DisplayChanged;
+
 
         public Chip8Core()
         {
@@ -60,10 +66,12 @@ namespace Chip8.Core
         public void LoadRom(byte[] romData)
         {
             //TODO: Throw custom exception of romdata wont fit
-            for(int i= 0; i < romData.Length; i++)
+            for (int i = 0; i < romData.Length; i++)
             {
                 _memory[RomStartLocation + i] = romData[i];
             }
+
+            PC = RomStartLocation;
         }
 
         public void LoadRom(string filePath)
@@ -71,10 +79,18 @@ namespace Chip8.Core
             LoadRom(File.ReadAllBytes(filePath));
         }
 
-        //TODO: Unit test Fetch
-        public short Fetch()
+        /// <summary>
+        /// Goes through the Fetch-Decode-Execute stages once
+        /// </summary>
+        public void Update()
         {
-            return (short)((Memory[PC << 8]) | Memory[PC + 1]);
+            Execute(Fetch());
+        }
+
+        //TODO: Unit test Fetch
+        public ushort Fetch()
+        {
+            return (ushort)((_memory[PC] << 8) | _memory[PC + 1]);
         }
 
         public void Execute(ushort opcode)
@@ -120,7 +136,7 @@ namespace Chip8.Core
                     SetIndexRegiesterInstruction(opcode);
                     break;
                 case 0xD:
-                    PrintToDisplayInstruction(opcode);
+                    DrawToDisplayInstruction(opcode);
                     break;
             }
         }
@@ -130,6 +146,9 @@ namespace Chip8.Core
         {
             switch (opcode.All)
             {
+                case 0:
+                    PC += 2;
+                    break;
                 case 0x00E0:
                     ClearScreenInstruction();
                     break;
@@ -330,25 +349,25 @@ namespace Chip8.Core
             PC += 2;
         }
 
-        //TODO: Unit test PrintToDisplayInstruction
-        private void PrintToDisplayInstruction(Opcode opcode) //DXYN
+        //TODO: Unit test DrawToDisplayInstruction
+        private void DrawToDisplayInstruction(Opcode opcode) //DXYN
         {
             var x = _variableRegisters[opcode.X] % DisplayWidth;
             var y = _variableRegisters[opcode.Y] % DisplayHeight;
 
             _variableRegisters[0xF] = 0;
 
-            for(int i = 0; i < opcode.N && y < DisplayHeight; i++)
+            for (int i = 0; i < opcode.N && y < DisplayHeight; i++)
             {
                 var spriteIndex = IndexRegister + i;
                 var spriteData = _memory[spriteIndex];
 
                 var spriteRow = Convert.ToString(spriteData, 2).PadLeft(8, '0');
 
-                var rowIndex = 0;
-                while(rowIndex++ < spriteRow.Length && x + rowIndex < DisplayWidth)
+                var rowIndex = -1;
+                while (++rowIndex < spriteRow.Length && x + rowIndex < DisplayWidth)
                 {
-                    if(spriteRow[rowIndex] == '1')
+                    if (spriteRow[rowIndex] == '1')
                     {
                         if (Display[y, x + rowIndex])
                             _variableRegisters[0xF] = 1;
@@ -359,6 +378,9 @@ namespace Chip8.Core
 
                 y++;
             }
+
+            DisplayChanged?.Invoke(this, EventArgs.Empty);
+            PC += 2;
         }
     }
 }
