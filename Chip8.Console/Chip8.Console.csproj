@@ -9,7 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Chip8.Compiler\Chip8.Compiler.csproj" />
     <ProjectReference Include="..\Chip8.Core\Chip8.Core.csproj" />
   </ItemGroup>
 
